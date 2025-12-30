@@ -44,7 +44,14 @@ export default function PrivacyPage() {
             <section>
               <h2 className="text-lg font-semibold text-[var(--text)] mb-2">5. Your Rights</h2>
               <p>
-                You have the right to access, update, or delete your personal information at any time through your account settings or by contacting us.
+                You have the right to access, update, or delete your personal information at any time through your account settings or by{' '}
+                <a
+                  href="mailto:robotic.82.ducat@icloud.com"
+                  className="text-[var(--accent)] hover:opacity-90"
+                >
+                  contacting us
+                </a>
+                .
               </p>
             </section>
             <section>

@@ -74,7 +74,14 @@ export default class AppErrorBoundary extends Component<
               </div>
 
               <p className="text-xs text-[var(--text-muted-2)] pt-2">
-                If this problem persists, please contact support.
+                If this problem persists, please{' '}
+                <a
+                  href="mailto:robotic.82.ducat@icloud.com"
+                  className="text-[var(--accent)] hover:opacity-90 underline"
+                >
+                  contact support
+                </a>
+                .
               </p>
             </div>
           </Card>

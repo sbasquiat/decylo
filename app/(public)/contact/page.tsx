@@ -20,10 +20,10 @@ export default function ContactPage() {
             <h2 className="text-lg font-semibold mb-2">Email</h2>
             <p className="text-[var(--text-muted)]">
               <a
-                href="mailto:hello@decylo.com"
+                href="mailto:robotic.82.ducat@icloud.com"
                 className="text-[var(--accent)] hover:opacity-90"
               >
-                hello@decylo.com
+                robotic.82.ducat@icloud.com
               </a>
             </p>
           </div>
