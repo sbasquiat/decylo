@@ -2,8 +2,7 @@
 const nextConfig = {
   reactStrictMode: true,
   // Turbopack is enabled by default in Next.js 16
-  // Optimize compilation speed
-  swcMinify: true,
+  // SWC minification is enabled by default in Next.js 16, no need to specify
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production',
   },

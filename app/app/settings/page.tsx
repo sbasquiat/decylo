@@ -224,16 +224,16 @@ export default function SettingsPage() {
     let yPos = margin
     let pageNumber = 1
 
-    // Color scheme
+    // Color scheme (RGB tuples for jsPDF)
     const colors = {
-      primary: [79, 124, 255], // #4F7CFF
-      success: [59, 214, 113], // #3BD671
-      warning: [255, 176, 32], // #FFB020
-      danger: [255, 93, 93], // #FF5D5D
-      text: [30, 30, 30],
-      textMuted: [120, 120, 120],
-      bgLight: [248, 249, 250],
-      border: [230, 230, 230],
+      primary: [79, 124, 255] as [number, number, number], // #4F7CFF
+      success: [59, 214, 113] as [number, number, number], // #3BD671
+      warning: [255, 176, 32] as [number, number, number], // #FFB020
+      danger: [255, 93, 93] as [number, number, number], // #FF5D5D
+      text: [30, 30, 30] as [number, number, number],
+      textMuted: [120, 120, 120] as [number, number, number],
+      bgLight: [248, 249, 250] as [number, number, number],
+      border: [230, 230, 230] as [number, number, number],
     }
 
     // Add page header
@@ -306,7 +306,7 @@ export default function SettingsPage() {
       
       // Box background
       if (bgColor) {
-        doc.setFillColor(...bgColor)
+        doc.setFillColor(...(bgColor as [number, number, number]))
         doc.rect(margin, boxY, contentWidth, boxHeight, 'F')
       }
       
@@ -336,7 +336,7 @@ export default function SettingsPage() {
       const badgeWidth = textWidth + 6
       const badgeHeight = 5
       
-      doc.setFillColor(...color)
+      doc.setFillColor(...(color as [number, number, number]))
       doc.roundedRect(x, y - badgeHeight, badgeWidth, badgeHeight, 1, 1, 'F')
       
       doc.setFontSize(7)
@@ -559,7 +559,7 @@ export default function SettingsPage() {
           : decision.confidence_int >= 40 
           ? colors.warning 
           : colors.danger
-        doc.setFillColor(...confidenceColor)
+        doc.setFillColor(...(confidenceColor as [number, number, number]))
         doc.roundedRect(margin, yPos, confidenceWidth, barHeight, 1, 1, 'F')
         
         // Text
@@ -596,7 +596,7 @@ export default function SettingsPage() {
           ? colors.warning 
           : colors.danger
         
-        doc.setFillColor(...outcomeColor)
+        doc.setFillColor(...(outcomeColor as [number, number, number]))
         doc.roundedRect(margin, yPos, contentWidth, outcomeHeaderHeight, 2, 2, 'F')
         
         doc.setFontSize(12)

@@ -41,15 +41,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  let user: { id: string; email?: string } | null = null
+
   try {
     const supabase = await createClient()
     const {
-      data: { user },
+      data: { user: authUser },
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (!authUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    user = authUser
 
     const { priceId } = await request.json()
 
@@ -61,7 +65,7 @@ export async function POST(request: NextRequest) {
     const { data: profile } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
-      .eq('id', user.id)
+      .eq('id', authUser.id)
       .single()
 
     let customerId = profile?.stripe_customer_id
@@ -70,9 +74,9 @@ export async function POST(request: NextRequest) {
 
     if (!customerId) {
       const customer = await stripe.customers.create({
-        email: user.email,
+        email: authUser.email,
         metadata: {
-          supabase_user_id: user.id,
+          supabase_user_id: authUser.id,
         },
       })
       customerId = customer.id
@@ -81,7 +85,7 @@ export async function POST(request: NextRequest) {
       await supabase
         .from('profiles')
         .update({ stripe_customer_id: customerId })
-        .eq('id', user.id)
+        .eq('id', authUser.id)
     }
 
     // Create checkout session
@@ -98,12 +102,12 @@ export async function POST(request: NextRequest) {
       success_url: `${request.nextUrl.origin}/app/settings?success=true`,
       cancel_url: `${request.nextUrl.origin}/app/settings?canceled=true`,
       metadata: {
-        supabase_user_id: user.id,
+        supabase_user_id: authUser.id,
       },
     })
 
     logSecurityEvent('checkout_session_created', {
-      userId: user.id,
+      userId: authUser.id,
       priceId,
     })
 

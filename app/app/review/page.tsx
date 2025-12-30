@@ -292,7 +292,7 @@ export default async function WeeklyReviewPage() {
             <div className="space-y-4">
               <div>
                 <p className="text-3xl font-semibold text-[var(--text)] mb-2">
-                  {Math.round(dhi.score)}
+                  {Math.round(dhi)}
                 </p>
                 <p className="text-sm font-medium text-[var(--text-muted)] mb-4 capitalize">
                   {tms.status === 'accelerating' ? 'Accelerating' : tms.status === 'declining' ? 'Declining' : 'Stable'}

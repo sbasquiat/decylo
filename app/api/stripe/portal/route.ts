@@ -35,20 +35,24 @@ export async function GET(request: NextRequest) {
     )
   }
 
+  let user: { id: string } | null = null
+
   try {
     const supabase = await createClient()
     const {
-      data: { user },
+      data: { user: authUser },
     } = await supabase.auth.getUser()
 
-    if (!user) {
+    if (!authUser) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+
+    user = authUser
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
       .select('stripe_customer_id')
-      .eq('id', user.id)
+      .eq('id', authUser.id)
       .maybeSingle()
 
     if (profileError) {
@@ -69,7 +73,7 @@ export async function GET(request: NextRequest) {
     })
 
     logSecurityEvent('portal_session_created', {
-      userId: user.id,
+      userId: authUser.id,
     })
 
     return NextResponse.json({ url: session.url })
