@@ -268,7 +268,7 @@ export default function NewDecisionPage() {
       // Validate options have labels
       const validOptions = options.filter(opt => opt.label && opt.label.trim())
       if (validOptions.length < 2) {
-        setError('Please provide at least 2 options with labels.')
+        setError('Please provide at least 2 paths with labels.')
         setLoading(false)
         return
       }
@@ -276,14 +276,14 @@ export default function NewDecisionPage() {
       // Validate chosen option exists
       const chosenOption = options.find(opt => opt.id === chosenOptionId)
       if (!chosenOption || !chosenOption.label.trim()) {
-        setError('Please select a valid option.')
+        setError('Please select a valid path.')
         setLoading(false)
         return
       }
 
       // Validate new required fields
       if (!decisionRationale.trim()) {
-        setError('Please explain why you are choosing this option.')
+        setError('Please explain why you are choosing this path.')
         setLoading(false)
         return
       }
@@ -700,13 +700,24 @@ export default function NewDecisionPage() {
                 </div>
               )}
               <div>
-                <h1 className="text-xl font-semibold tracking-tight">List your options and model their outcomes.</h1>
+                <h1 className="text-xl font-semibold tracking-tight">Possible Paths</h1>
+                <p className="mt-2 text-xs text-[var(--text-muted)]">
+                  These are the realistic ways this decision could play out.
+                </p>
               </div>
+              {/* Helper text for first-time users */}
+              {showTooltip && (
+                <div className="p-3 rounded-xl bg-[rgba(79,124,255,0.1)] border border-[rgba(79,124,255,0.2)]">
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+                    Add the different ways this decision could unfold. You are comparing futures, not answers.
+                  </p>
+                </div>
+              )}
               {options.map((option, idx) => (
                 <Card key={option.id} className="p-4">
                   <div className="space-y-4">
                     <div className="flex items-start justify-between">
-                      <h3 className="text-sm font-semibold">Option {idx + 1}</h3>
+                      <h3 className="text-sm font-semibold">Path {idx + 1}</h3>
                       {options.length > 2 && (
                         <button
                           onClick={() => removeOption(option.id)}
@@ -717,7 +728,7 @@ export default function NewDecisionPage() {
                       )}
                     </div>
                     <TextInput
-                      placeholder="Option label"
+                      placeholder={idx === 0 ? "e.g. Accept the job offer" : idx === 1 ? "e.g. Decline and keep searching" : idx === 2 ? "e.g. Negotiate salary" : "e.g. Another path"}
                       value={option.label}
                       onChange={(e) => updateOption(option.id, { label: e.target.value })}
                     />
@@ -761,7 +772,7 @@ export default function NewDecisionPage() {
               ))}
               {options.length < 5 && (
                 <Button variant="secondary" onClick={addOption} className="w-full">
-                  Add Option
+                  Add Path
                 </Button>
               )}
               {suggestedOption && (
@@ -801,7 +812,7 @@ export default function NewDecisionPage() {
               {/* Choose Option */}
               <div>
                 <label className="block text-sm font-semibold text-[var(--text-muted)] mb-2">
-                  Choose Option
+                  Choose Path
                 </label>
                 <div className="space-y-2">
                   {options.map((option) => (
@@ -832,7 +843,7 @@ export default function NewDecisionPage() {
               {chosenOptionId && (
                 <div>
                   <label className="block text-sm font-semibold text-[var(--text-muted)] mb-2">
-                    Why are you choosing this option? <span className="text-[var(--danger)]">*</span>
+                    Why are you choosing this path? <span className="text-[var(--danger)]">*</span>
                   </label>
                   <textarea
                     value={decisionRationale}
