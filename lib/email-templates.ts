@@ -21,7 +21,7 @@ function getBaseEmailHTML(content: string, data: EmailTemplateData): string {
   const appUrl = getEmailAppUrl()
   const year = data.year || new Date().getFullYear()
   const preferencesUrl = data.preferences_url || `${appUrl}/app/settings/email-preferences`
-  const unsubscribeUrl = data.unsubscribe_url || `${appUrl}/app/settings/email-preferences`
+  const unsubscribeUrl = data.unsubscribe_url || `${appUrl}/app/settings/email-preferences?unsubscribe=true`
 
   return `<!doctype html>
 <html>

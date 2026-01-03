@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Card } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -15,6 +15,7 @@ interface EmailPreferences {
 
 export default function EmailPreferencesPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [preferences, setPreferences] = useState<EmailPreferences>({
@@ -24,10 +25,17 @@ export default function EmailPreferencesPage() {
   })
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [unsubscribed, setUnsubscribed] = useState(false)
 
   useEffect(() => {
     loadPreferences()
-  }, [])
+    
+    // Check if this is an unsubscribe request
+    const unsubscribe = searchParams.get('unsubscribe')
+    if (unsubscribe === 'true') {
+      handleUnsubscribe()
+    }
+  }, [searchParams])
 
   const loadPreferences = async () => {
     try {
@@ -68,10 +76,61 @@ export default function EmailPreferencesPage() {
     }
   }
 
+  const handleUnsubscribe = async () => {
+    setSaving(true)
+    setError(null)
+    setSuccess(false)
+
+    try {
+      const supabase = createClient()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
+
+      if (!user) {
+        router.push('/signin')
+        return
+      }
+
+      // Unsubscribe from all emails
+      const unsubscribePreferences = {
+        welcome: false,
+        reminders: false,
+        weekly_review: false,
+      }
+
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({
+          email_preferences: unsubscribePreferences,
+        })
+        .eq('id', user.id)
+
+      if (updateError) {
+        console.error('Error unsubscribing:', updateError)
+        setError('Failed to unsubscribe')
+        return
+      }
+
+      setPreferences(unsubscribePreferences)
+      setUnsubscribed(true)
+      setSuccess(true)
+      
+      // Remove unsubscribe param from URL
+      router.replace('/app/settings/email-preferences', { scroll: false })
+    } catch (err) {
+      console.error('Error:', err)
+      setError('Failed to unsubscribe')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   const handleSave = async () => {
     setSaving(true)
     setError(null)
     setSuccess(false)
+    setUnsubscribed(false)
 
     try {
       const supabase = createClient()
@@ -148,7 +207,9 @@ export default function EmailPreferencesPage() {
 
             {success && (
               <div className="p-4 rounded-xl bg-[rgba(59,214,113,0.12)] border border-[rgba(59,214,113,0.30)]">
-                <p className="text-sm text-[var(--success)]">Preferences saved.</p>
+                <p className="text-sm text-[var(--success)]">
+                  {unsubscribed ? 'You have been unsubscribed from all emails.' : 'Preferences saved.'}
+                </p>
               </div>
             )}
 
