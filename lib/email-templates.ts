@@ -3,6 +3,8 @@
  * Dark, clean aesthetic with calm, direct tone
  */
 
+import { getEmailAppUrl } from './email-urls'
+
 export interface EmailTemplateData {
   display_name?: string
   cta_url?: string
@@ -16,7 +18,7 @@ export interface EmailTemplateData {
  * Base HTML wrapper for all Decylo emails
  */
 function getBaseEmailHTML(content: string, data: EmailTemplateData): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const year = data.year || new Date().getFullYear()
   const preferencesUrl = data.preferences_url || `${appUrl}/app/settings/email-preferences`
   const unsubscribeUrl = data.unsubscribe_url || `${appUrl}/app/settings/email-preferences`
@@ -78,7 +80,7 @@ function getBaseEmailHTML(content: string, data: EmailTemplateData): string {
  */
 export function generateWelcomeEmailHTML(data: EmailTemplateData): string {
   const displayName = data.display_name || 'there'
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const ctaUrl = data.cta_url || `${appUrl}/app/new`
 
   const content = `
@@ -118,7 +120,7 @@ export function generateWelcomeEmailHTML(data: EmailTemplateData): string {
 export function generateOutcomeDueTodayEmailHTML(data: EmailTemplateData): string {
   const countDue = data.count_due || 0
   const pluralDue = countDue === 1 ? '' : 's'
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const ctaUrl = data.cta_url || `${appUrl}/app`
 
   // Generate decision list
@@ -161,7 +163,7 @@ ${decisionListHTML}
  */
 export function generateOutcomeOverdueEmailHTML(data: EmailTemplateData): string {
   const title = data.title || 'This decision'
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const decisionId = data.decision_id
   const ctaUrl = data.cta_url || (decisionId ? `${appUrl}/app/decision/${decisionId}?logOutcome=true` : `${appUrl}/app`)
 
@@ -201,7 +203,7 @@ export function generateWeeklyReviewEmailHTML(data: EmailTemplateData): string {
   const calGap = data.cal_gap ?? '—'
   const lcr = data.lcr ?? '—'
   const challengeText = data.challenge_text || 'Keep closing loops. That\'s the only metric that matters.'
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const ctaUrl = data.cta_url || `${appUrl}/app/review`
 
   const content = `
@@ -248,7 +250,7 @@ export function generateWeeklyReviewEmailHTML(data: EmailTemplateData): string {
  * 5. Streak Save
  */
 export function generateStreakSaveEmailHTML(data: EmailTemplateData): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const ctaUrl = data.cta_url || `${appUrl}/app`
 
   const content = `
@@ -273,7 +275,7 @@ export function generateStreakSaveEmailHTML(data: EmailTemplateData): string {
  * 6. First Outcome Celebration
  */
 export function generateFirstOutcomeEmailHTML(data: EmailTemplateData): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const ctaUrl = data.cta_url || `${appUrl}/app/insights`
 
   const content = `
@@ -302,7 +304,7 @@ export function generateFirstOutcomeEmailHTML(data: EmailTemplateData): string {
  * 7. Pro Moment (after 3rd outcome)
  */
 export function generateProMomentEmailHTML(data: EmailTemplateData): string {
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const appUrl = getEmailAppUrl()
   const ctaUrl = data.cta_url || `${appUrl}/pricing`
 
   const content = `

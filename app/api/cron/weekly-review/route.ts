@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
     // Get profiles for preferences and timezone
     const { data: profiles } = await supabase
       .from('profiles')
-      .select('id, email_preferences, timezone')
+      .select('id, email_preferences, timezone, display_name')
       .in('id', userIds)
 
     const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])

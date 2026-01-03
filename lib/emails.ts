@@ -189,7 +189,8 @@ export function generateOutcomeDueTodayEmail(
   userName?: string
 ): EmailData {
   const { generateOutcomeDueTodayEmailHTML } = require('./email-templates')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const { getEmailAppUrl } = require('./email-urls')
+  const appUrl = getEmailAppUrl()
   
   return {
     to: '', // Will be set by caller
@@ -218,7 +219,8 @@ export function generateOutcomeOverdueEmail(
   userName?: string
 ): EmailData {
   const { generateOutcomeOverdueEmailHTML } = require('./email-templates')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const { getEmailAppUrl } = require('./email-urls')
+  const appUrl = getEmailAppUrl()
   
   return {
     to: '', // Will be set by caller
@@ -254,7 +256,8 @@ export function generateOutcomeReminderEmail(
  */
 export function generateStreakSaveEmail(userName?: string): EmailData {
   const { generateStreakSaveEmailHTML } = require('./email-templates')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const { getEmailAppUrl } = require('./email-urls')
+  const appUrl = getEmailAppUrl()
   
   return {
     to: '', // Will be set by caller
@@ -280,7 +283,8 @@ export function generateInactivityNudgeEmail(userName?: string): EmailData {
  */
 export function generateFirstOutcomeEmail(userName?: string): EmailData {
   const { generateFirstOutcomeEmailHTML } = require('./email-templates')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const { getEmailAppUrl } = require('./email-urls')
+  const appUrl = getEmailAppUrl()
   
   return {
     to: '', // Will be set by caller
@@ -298,7 +302,8 @@ export function generateFirstOutcomeEmail(userName?: string): EmailData {
  */
 export function generateProMomentEmail(userName?: string): EmailData {
   const { generateProMomentEmailHTML } = require('./email-templates')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const { getEmailAppUrl } = require('./email-urls')
+  const appUrl = getEmailAppUrl()
   
   return {
     to: '', // Will be set by caller
@@ -334,7 +339,8 @@ export function generateWeeklyReviewEmail(
   }
 ): EmailData {
   const { generateWeeklyReviewEmailHTML } = require('./email-templates')
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://decylo.com'
+  const { getEmailAppUrl } = require('./email-urls')
+  const appUrl = getEmailAppUrl()
   
   const trendWord = weekStats?.trajectory === 'up' 
     ? 'up' 
