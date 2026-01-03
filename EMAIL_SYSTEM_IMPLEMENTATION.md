@@ -36,16 +36,6 @@ All templates use dark, minimal design matching Decylo aesthetic.
 ### 6. Welcome Email Trigger
 - ✅ `/api/send-welcome-email` POST endpoint
 - ✅ Can be called after signup to send welcome email
-
-## 📋 Setup Required
-
-### Environment Variables (Vercel)
-```bash
-RESEND_API_KEY=re_5rttE4Rp_N6SgtCby8srzzzGP1h6iwQ42
-RESEND_FROM_EMAIL=Decylo <hello@decylo.com>
-NEXT_PUBLIC_APP_URL=https://decylo.com
-CRON_SECRET=<generate-secure-random-string>
-SUPABASE_SERVICE_ROLE_KEY=<your-service-role-key>
 ```
 
 ### Database Migration
