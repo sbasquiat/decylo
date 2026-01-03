@@ -366,6 +366,26 @@ export default function LogOutcomeModal({
         console.log('upgrade_viewed', { reason: 'outcome_3' })
       }
 
+      // Trigger email notifications (first outcome, pro moment)
+      try {
+        const { triggerFirstOutcomeEmail, triggerProMomentEmail, checkOutcomeEmailTriggers } = await import('@/lib/email-triggers')
+        const {
+          data: { user },
+        } = await supabase.auth.getUser()
+        
+        if (user?.email) {
+          const emailType = await checkOutcomeEmailTriggers(user.id)
+          if (emailType === 'first_outcome') {
+            await triggerFirstOutcomeEmail(user.id, user.email)
+          } else if (emailType === 'pro_moment') {
+            await triggerProMomentEmail(user.id, user.email)
+          }
+        }
+      } catch (err) {
+        console.error('Error sending outcome email triggers:', err)
+        // Don't fail the operation if email fails
+      }
+
       // Trigger Decision Health recalculation
       try {
         await fetch('/api/decision-health/recalculate', {

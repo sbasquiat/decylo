@@ -227,7 +227,24 @@ export default function QuickCheckinModal({
         learning_confidence: confidence,
       })
 
-      // 5. Trigger Decision Health recalculation
+      // 5. Trigger email notifications (first outcome, pro moment)
+      try {
+        const { triggerFirstOutcomeEmail, triggerProMomentEmail, checkOutcomeEmailTriggers } = await import('@/lib/email-triggers')
+        
+        if (user?.email) {
+          const emailType = await checkOutcomeEmailTriggers(user.id)
+          if (emailType === 'first_outcome') {
+            await triggerFirstOutcomeEmail(user.id, user.email)
+          } else if (emailType === 'pro_moment') {
+            await triggerProMomentEmail(user.id, user.email)
+          }
+        }
+      } catch (err) {
+        console.error('Error sending outcome email triggers:', err)
+        // Don't fail the operation if email fails
+      }
+
+      // 6. Trigger Decision Health recalculation
       try {
         await fetch('/api/decision-health/recalculate', {
           method: 'POST',
@@ -237,7 +254,7 @@ export default function QuickCheckinModal({
         // Don't fail the operation if health recalculation fails
       }
 
-      // 6. Close modal
+      // 7. Close modal
       handleClose()
 
       // 7. Trigger refresh and show toast via custom event
