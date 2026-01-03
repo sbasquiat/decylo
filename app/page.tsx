@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import ProofSection from '@/components/ProofSection'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -86,6 +87,9 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
+
+        {/* Proof Section */}
+        <ProofSection />
       </main>
       <footer className="border-t border-[var(--border)] bg-[var(--bg)] mt-auto">
         <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">

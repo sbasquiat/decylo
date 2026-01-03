@@ -129,11 +129,29 @@ export default function SignUpPage() {
                 {loading ? 'Creating account...' : 'Create account'}
               </PrimaryButton>
 
-              <div className="text-center text-sm text-[var(--text-muted)]">
-                Already have an account?{' '}
-                <Link href="/signin" className="text-[var(--accent)] hover:opacity-90">
-                  Sign in
-                </Link>
+              <div className="space-y-3 pt-2">
+                <div className="text-center text-xs text-[var(--text-muted)]">
+                  <div className="mb-2">No credit card. Cancel anytime.</div>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <Link href="/how-it-works" className="text-[var(--accent)] hover:opacity-90">
+                      How it works
+                    </Link>
+                    <span className="text-[var(--text-muted-2)]">·</span>
+                    <Link href="/privacy" className="text-[var(--accent)] hover:opacity-90">
+                      Privacy
+                    </Link>
+                  </div>
+                  <div className="mt-2 text-[var(--text-muted-2)]">
+                    No ads. No data selling.
+                  </div>
+                </div>
+
+                <div className="text-center text-sm text-[var(--text-muted)]">
+                  Already have an account?{' '}
+                  <Link href="/signin" className="text-[var(--accent)] hover:opacity-90">
+                    Sign in
+                  </Link>
+                </div>
               </div>
             </form>
           </CardBody>
