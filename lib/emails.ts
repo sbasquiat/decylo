@@ -291,7 +291,7 @@ export function generateFirstOutcomeEmail(userName?: string): EmailData {
     subject: "That's your first loop closed",
     html: generateFirstOutcomeEmailHTML({
       display_name: userName,
-      cta_url: `${appUrl}/app/insights`,
+      cta_url: `${appUrl}/app`,
     }),
   }
 }
@@ -310,7 +310,7 @@ export function generateProMomentEmail(userName?: string): EmailData {
     subject: 'Your Decision Health is forming — unlock the full model',
     html: generateProMomentEmailHTML({
       display_name: userName,
-      cta_url: `${appUrl}/pricing`,
+      cta_url: `${appUrl}/app/settings`,
     }),
   }
 }
@@ -365,7 +365,7 @@ export function generateWeeklyReviewEmail(
       cal_gap: weekStats?.cal_gap,
       lcr: weekStats?.lcr,
       challenge_text: challengeText,
-      cta_url: `${appUrl}/app/review`,
+      cta_url: `${appUrl}/app`,
     }),
   }
 }

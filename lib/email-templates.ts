@@ -204,7 +204,8 @@ export function generateWeeklyReviewEmailHTML(data: EmailTemplateData): string {
   const lcr = data.lcr ?? '—'
   const challengeText = data.challenge_text || 'Keep closing loops. That\'s the only metric that matters.'
   const appUrl = getEmailAppUrl()
-  const ctaUrl = data.cta_url || `${appUrl}/app/review`
+  // Redirect to main app page since /app/review doesn't exist yet
+  const ctaUrl = data.cta_url || `${appUrl}/app`
 
   const content = `
 <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;">Your Weekly Review</h1>
@@ -276,7 +277,8 @@ export function generateStreakSaveEmailHTML(data: EmailTemplateData): string {
  */
 export function generateFirstOutcomeEmailHTML(data: EmailTemplateData): string {
   const appUrl = getEmailAppUrl()
-  const ctaUrl = data.cta_url || `${appUrl}/app/insights`
+  // Redirect to main app page since /app/insights doesn't exist yet
+  const ctaUrl = data.cta_url || `${appUrl}/app`
 
   const content = `
 <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;">First loop closed ✅</h1>
@@ -305,7 +307,8 @@ export function generateFirstOutcomeEmailHTML(data: EmailTemplateData): string {
  */
 export function generateProMomentEmailHTML(data: EmailTemplateData): string {
   const appUrl = getEmailAppUrl()
-  const ctaUrl = data.cta_url || `${appUrl}/pricing`
+  // Redirect to settings page where upgrade is available
+  const ctaUrl = data.cta_url || `${appUrl}/app/settings`
 
   const content = `
 <h1 style="margin:0 0 10px;font-size:22px;line-height:1.25;">Now it gets interesting.</h1>
