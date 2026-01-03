@@ -7,6 +7,20 @@ export interface Profile {
   created_at: string
   display_name: string | null
   timezone: string
+  email_preferences?: {
+    welcome?: boolean
+    reminders?: boolean
+    weekly_review?: boolean
+  }
+}
+
+export interface EmailLog {
+  id: string
+  user_id: string
+  email_type: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt'
+  target_id: string | null // decision_id for outcome_reminder, null for others
+  sent_at: string
+  created_at: string
 }
 
 export interface Decision {

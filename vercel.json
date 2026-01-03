@@ -1,0 +1,13 @@
+{
+  "crons": [
+    {
+      "path": "/api/cron/outcome-due",
+      "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/weekly-review",
+      "schedule": "0 18 * * 0"
+    }
+  ]
+}
+
