@@ -3,7 +3,7 @@
  */
 
 import { createClient } from '@/lib/supabase/server'
-import { createClient as createServiceClient } from '@supabase/supabase-js'
+import { createClient as createServiceClient, SupabaseClient } from '@supabase/supabase-js'
 
 export interface EmailPreferences {
   welcome?: boolean
@@ -19,37 +19,55 @@ const DEFAULT_PREFERENCES: EmailPreferences = {
 
 /**
  * Get user's email preferences, with defaults
+ * Can use service role client if provided (for cron jobs/webhooks)
  */
-export async function getUserEmailPreferences(userId: string): Promise<EmailPreferences> {
-  const supabase = await createClient()
-  
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email_preferences')
-    .eq('id', userId)
-    .single()
+export async function getUserEmailPreferences(
+  userId: string,
+  supabaseClient?: SupabaseClient
+): Promise<EmailPreferences> {
+  try {
+    const supabase = supabaseClient || await createClient()
+    
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('email_preferences')
+      .eq('id', userId)
+      .single()
 
-  if (!profile?.email_preferences) {
+    if (error) {
+      console.error('Error fetching email preferences:', error)
+      // Return defaults on error (fail open)
+      return DEFAULT_PREFERENCES
+    }
+
+    if (!profile?.email_preferences) {
+      return DEFAULT_PREFERENCES
+    }
+
+    return {
+      ...DEFAULT_PREFERENCES,
+      ...(profile.email_preferences as EmailPreferences),
+    }
+  } catch (error) {
+    console.error('Error in getUserEmailPreferences:', error)
+    // Return defaults on error (fail open)
     return DEFAULT_PREFERENCES
-  }
-
-  return {
-    ...DEFAULT_PREFERENCES,
-    ...(profile.email_preferences as EmailPreferences),
   }
 }
 
 /**
  * Check if email was already sent recently (idempotency check)
  * Returns true if email should NOT be sent (already sent within X days)
+ * Can use service role client if provided (for cron jobs/webhooks)
  */
 export async function shouldSkipEmail(
   userId: string,
   emailType: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt',
   targetId: string | null = null,
-  daysWindow: number = 7
+  daysWindow: number = 7,
+  supabaseClient?: SupabaseClient
 ): Promise<boolean> {
-  const supabase = await createClient()
+  const supabase = supabaseClient || await createClient()
   
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysWindow)

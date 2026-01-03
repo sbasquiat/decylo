@@ -108,41 +108,48 @@ export async function sendProductEmail(
   emailType: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt',
   emailData: EmailData,
   targetId: string | null = null,
-  daysWindow: number = 7
+  daysWindow: number = 7,
+  supabaseClient?: any // Optional Supabase client for contexts without user session
 ): Promise<boolean> {
   // Import here to avoid circular dependencies
   const { getUserEmailPreferences, shouldSkipEmail, logEmailSent, getPreferenceForEmailType } = await import('@/lib/emails-utils')
 
-  // Check preferences
-  const preferences = await getUserEmailPreferences(userId)
-  if (!getPreferenceForEmailType(preferences, emailType)) {
-    console.log(`Email ${emailType} skipped - user preference disabled for user ${userId}`)
+  try {
+    // Check preferences
+    const preferences = await getUserEmailPreferences(userId, supabaseClient)
+    if (!getPreferenceForEmailType(preferences, emailType)) {
+      console.log(`Email ${emailType} skipped - user preference disabled for user ${userId}`)
+      return false
+    }
+
+    // Check idempotency
+    if (await shouldSkipEmail(userId, emailType, targetId, daysWindow, supabaseClient)) {
+      console.log(`Email ${emailType} skipped - already sent recently for user ${userId}, target ${targetId || 'none'}`)
+      return false
+    }
+
+    // Send email
+    const emailToSend = {
+      ...emailData,
+      to: userEmail,
+    }
+
+    const sent = await sendEmail(emailToSend)
+
+    if (sent) {
+      // Log that email was sent
+      await logEmailSent(userId, emailType, targetId, supabaseClient ? process.env.SUPABASE_SERVICE_ROLE_KEY : undefined)
+      console.log(`Email ${emailType} sent successfully to ${userEmail}`)
+    } else {
+      console.log(`Email ${emailType} not sent to ${userEmail}`)
+    }
+
+    return sent
+  } catch (error) {
+    console.error(`Error in sendProductEmail for ${emailType}:`, error)
+    // Don't throw - allow caller to handle
     return false
   }
-
-  // Check idempotency
-  if (await shouldSkipEmail(userId, emailType, targetId, daysWindow)) {
-    console.log(`Email ${emailType} skipped - already sent recently for user ${userId}, target ${targetId || 'none'}`)
-    return false
-  }
-
-  // Send email
-  const emailToSend = {
-    ...emailData,
-    to: userEmail,
-  }
-
-  const sent = await sendEmail(emailToSend)
-
-  if (sent) {
-    // Log that email was sent
-    await logEmailSent(userId, emailType, targetId)
-    console.log(`Email ${emailType} sent successfully to ${userEmail}`)
-  } else {
-    console.log(`Email ${emailType} not sent to ${userEmail}`)
-  }
-
-  return sent
 }
 
 /**
