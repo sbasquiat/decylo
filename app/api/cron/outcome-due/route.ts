@@ -4,9 +4,10 @@ import { generateOutcomeDueTodayEmail, generateOutcomeOverdueEmail, sendEmail } 
 import { logEmailSent, getPreferenceForEmailType } from '@/lib/emails-utils'
 
 /**
- * Cron job: Daily outcome due reminders
+ * Cron job: Daily outcome reminders (due + overdue)
  * Runs daily, finds decisions that are decided but have no outcome
- * Sends reminder emails to decision owners
+ * Sends daily digest for decisions due today
+ * Sends stronger nudge for decisions overdue >7 days
  * 
  * Configure in Vercel: https://vercel.com/docs/cron-jobs
  * Schedule: 0 9 * * * (9 AM UTC daily)
@@ -78,6 +79,17 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // Separate decisions into "due today" (decided within last 7 days) and "overdue" (>7 days)
+    const sevenDaysAgo = new Date()
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7)
+    
+    const decisionsDueToday = decisionsNeedingReminders.filter(
+      d => new Date(d.decided_at) >= sevenDaysAgo
+    )
+    const overdueDecisions = decisionsNeedingReminders.filter(
+      d => new Date(d.decided_at) < sevenDaysAgo
+    )
+
     // Get user emails and preferences
     const userIds = Array.from(new Set(decisionsNeedingReminders.map(d => d.user_id)))
     
@@ -98,9 +110,9 @@ export async function GET(request: NextRequest) {
 
     const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
 
-    // Group decisions by user for daily digest
-    const decisionsByUser = new Map<string, typeof decisionsNeedingReminders>()
-    for (const decision of decisionsNeedingReminders) {
+    // Group decisions by user for daily digest (due today only)
+    const decisionsByUser = new Map<string, typeof decisionsDueToday>()
+    for (const decision of decisionsDueToday) {
       if (!decisionsByUser.has(decision.user_id)) {
         decisionsByUser.set(decision.user_id, [])
       }
@@ -111,7 +123,7 @@ export async function GET(request: NextRequest) {
     const userEntries = Array.from(decisionsByUser.entries())
 
     // Get decision details (options, confidence) for email
-    const reminderDecisionIds = decisionsNeedingReminders.map(d => d.id)
+    const reminderDecisionIds = decisionsDueToday.map(d => d.id)
     const { data: decisionsWithDetails } = await supabase
       .from('decisions')
       .select('id, title, chosen_option_id, confidence_int')
@@ -204,11 +216,88 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    // Now handle overdue decisions (send individual emails)
+    let overdueSentCount = 0
+    let overdueSkippedCount = 0
+
+    if (overdueDecisions.length > 0) {
+      const overdueUserIds = Array.from(new Set(overdueDecisions.map(d => d.user_id)))
+      const { data: overdueProfiles } = await supabase
+        .from('profiles')
+        .select('id, email_preferences, display_name')
+        .in('id', overdueUserIds)
+
+      const overdueProfileMap = new Map(overdueProfiles?.map(p => [p.id, p]) || [])
+
+      for (const decision of overdueDecisions) {
+        const userEmail = userMap.get(decision.user_id)
+        if (!userEmail) {
+          overdueSkippedCount++
+          continue
+        }
+
+        const profile = overdueProfileMap.get(decision.user_id)
+        const preferences = {
+          welcome: profile?.email_preferences?.welcome !== false,
+          reminders: profile?.email_preferences?.reminders !== false,
+          weekly_review: profile?.email_preferences?.weekly_review !== false,
+        }
+
+        if (!getPreferenceForEmailType(preferences, 'outcome_overdue')) {
+          overdueSkippedCount++
+          continue
+        }
+
+        // Check idempotency (don't send if already sent in last 7 days)
+        const cutoffDate = new Date()
+        cutoffDate.setDate(cutoffDate.getDate() - 7)
+        const { data: existingLog } = await supabase
+          .from('email_logs')
+          .select('id')
+          .eq('user_id', decision.user_id)
+          .eq('email_type', 'outcome_overdue')
+          .eq('target_id', decision.id)
+          .gte('sent_at', cutoffDate.toISOString())
+          .limit(1)
+
+        if (existingLog && existingLog.length > 0) {
+          overdueSkippedCount++
+          continue
+        }
+
+        // Send overdue email
+        const emailData = generateOutcomeOverdueEmail(
+          decision.title || 'This decision',
+          decision.id,
+          profile?.display_name || undefined
+        )
+        const emailToSend = {
+          ...emailData,
+          to: userEmail,
+        }
+        const sent = await sendEmail(emailToSend)
+
+        if (sent) {
+          await logEmailSent(decision.user_id, 'outcome_overdue', decision.id, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+          overdueSentCount++
+        } else {
+          overdueSkippedCount++
+        }
+      }
+    }
+
     return NextResponse.json({
-      message: 'Outcome reminder cron completed',
-      total: decisionsNeedingReminders.length,
-      sent: sentCount,
-      skipped: skippedCount,
+      message: 'Outcome reminder cron completed (due + overdue)',
+      due_today: {
+        total: decisionsDueToday.length,
+        sent: sentCount,
+        skipped: skippedCount,
+      },
+      overdue: {
+        total: overdueDecisions.length,
+        sent: overdueSentCount,
+        skipped: overdueSkippedCount,
+      },
     })
   } catch (error) {
     console.error('Error in outcome-due cron:', error)
