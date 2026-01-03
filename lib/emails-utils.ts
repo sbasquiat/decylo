@@ -26,7 +26,11 @@ export async function getUserEmailPreferences(
   supabaseClient?: SupabaseClient
 ): Promise<EmailPreferences> {
   try {
-    const supabase = supabaseClient || await createClient()
+    // Only use createClient if no client provided (server-side only)
+    const supabase = supabaseClient || await (async () => {
+      const { createClient } = await import('@/lib/supabase/server')
+      return createClient()
+    })()
     
     const { data: profile, error } = await supabase
       .from('profiles')
