@@ -1,9 +1,6 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
-import { Button } from '@/components/ui/Button'
-import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 
 export default async function HomePage() {
   const supabase = await createClient()
@@ -19,7 +16,29 @@ export default async function HomePage() {
   // Show landing page for unauthenticated users
   return (
     <div className="min-h-screen bg-[var(--bg)] flex flex-col">
-      <Navbar />
+      <nav className="border-b border-[var(--border)] bg-[var(--bg)]">
+        <div className="mx-auto w-full max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <Link href="/" className="text-lg font-semibold tracking-tight text-[var(--text)]">
+              Decylo
+            </Link>
+            <div className="flex gap-3">
+              <Link 
+                href="/signin"
+                className="px-4 py-2 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text)] transition"
+              >
+                Sign In
+              </Link>
+              <Link 
+                href="/signup"
+                className="px-4 py-2 text-sm font-medium bg-[#4C7DFF] text-[#071024] rounded-lg hover:opacity-90 transition"
+              >
+                Get Started
+              </Link>
+            </div>
+          </div>
+        </div>
+      </nav>
       <main className="flex-1">
         <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
           <div className="text-center space-y-8">
@@ -31,34 +50,36 @@ export default async function HomePage() {
               Decylo is a judgment training system. Capture decisions, evaluate options, commit with confidence, and learn from every outcome.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <Link href="/signup">
-                <Button size="lg" className="w-full sm:w-auto">
-                  Get Started
-                </Button>
+              <Link 
+                href="/signup"
+                className="px-6 py-3 bg-[#4C7DFF] text-[#071024] font-semibold rounded-lg hover:opacity-90 transition w-full sm:w-auto text-center"
+              >
+                Get Started
               </Link>
-              <Link href="/signin">
-                <Button variant="secondary" size="lg" className="w-full sm:w-auto">
-                  Sign In
-                </Button>
+              <Link 
+                href="/signin"
+                className="px-6 py-3 border border-[var(--border)] text-[var(--text)] font-semibold rounded-lg hover:bg-[var(--surface-elevated)] transition w-full sm:w-auto text-center"
+              >
+                Sign In
               </Link>
             </div>
           </div>
 
           <div className="mt-24 grid md:grid-cols-3 gap-8">
             <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]">
-              <h3 className="text-lg font-semibold mb-2">Capture</h3>
+              <h3 className="text-lg font-semibold mb-2 text-[var(--text)]">Capture</h3>
               <p className="text-sm text-[var(--text-muted)]">
                 Record real decisions you're facing. Be specific about the options and context.
               </p>
             </div>
             <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]">
-              <h3 className="text-lg font-semibold mb-2">Evaluate</h3>
+              <h3 className="text-lg font-semibold mb-2 text-[var(--text)]">Evaluate</h3>
               <p className="text-sm text-[var(--text-muted)]">
                 Score each option across multiple dimensions. See which path maximizes value.
               </p>
             </div>
             <div className="p-6 rounded-xl border border-[var(--border)] bg-[var(--surface-elevated)]">
-              <h3 className="text-lg font-semibold mb-2">Reflect</h3>
+              <h3 className="text-lg font-semibold mb-2 text-[var(--text)]">Reflect</h3>
               <p className="text-sm text-[var(--text-muted)]">
                 Log outcomes and learn. Your judgment improves with every loop you close.
               </p>
@@ -66,7 +87,15 @@ export default async function HomePage() {
           </div>
         </div>
       </main>
-      <Footer />
+      <footer className="border-t border-[var(--border)] bg-[var(--bg)] mt-auto">
+        <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <p className="text-sm text-[var(--text-muted)]">
+              © {new Date().getFullYear()} Decylo. All rights reserved.
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }
