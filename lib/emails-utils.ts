@@ -1,8 +1,8 @@
 /**
  * Email utility functions for checking preferences and idempotency
+ * Server-side only - uses next/headers
  */
 
-import { createClient } from '@/lib/supabase/server'
 import { createClient as createServiceClient, SupabaseClient } from '@supabase/supabase-js'
 
 export interface EmailPreferences {
@@ -67,7 +67,11 @@ export async function shouldSkipEmail(
   daysWindow: number = 7,
   supabaseClient?: SupabaseClient
 ): Promise<boolean> {
-  const supabase = supabaseClient || await createClient()
+  // Only use createClient if no client provided (server-side only)
+  const supabase = supabaseClient || await (async () => {
+    const { createClient } = await import('@/lib/supabase/server')
+    return createClient()
+  })()
   
   const cutoffDate = new Date()
   cutoffDate.setDate(cutoffDate.getDate() - daysWindow)
@@ -120,7 +124,10 @@ export async function logEmailSent(
           },
         }
       )
-    : await createClient()
+    : await (async () => {
+        const { createClient } = await import('@/lib/supabase/server')
+        return createClient()
+      })()
   
   const { error } = await supabase
     .from('email_logs')

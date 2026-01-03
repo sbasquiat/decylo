@@ -1,4 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+/**
+ * Get user's plan status (server-side only)
+ * Returns { isPro: boolean } based on subscription status
+ */
 
 export interface UserPlan {
   isPro: boolean
@@ -10,6 +13,7 @@ export interface UserPlan {
  * Returns { isPro: boolean } based on subscription status
  */
 export async function getUserPlan(): Promise<UserPlan> {
+  const { createClient } = await import('@/lib/supabase/server')
   const supabase = await createClient()
   const {
     data: { user },
