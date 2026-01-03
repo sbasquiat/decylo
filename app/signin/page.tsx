@@ -6,7 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardHeader, CardBody } from '@/components/ui/Card'
 import { Button, PrimaryButton } from '@/components/ui/Button'
 import { TextInput } from '@/components/ui/TextInput'
-import { PasswordInput } from '@/components/ui/PasswordInput'
+import PasswordInput from '@/components/ui/PasswordInput'
 import AuthNavbar from '@/components/AuthNavbar'
 import Link from 'next/link'
 
