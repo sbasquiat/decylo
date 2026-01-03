@@ -79,7 +79,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Get user emails and preferences
-    const userIds = [...new Set(decisionsNeedingReminders.map(d => d.user_id))]
+    const userIds = Array.from(new Set(decisionsNeedingReminders.map(d => d.user_id)))
     
     // Get user emails from auth.users (requires service role)
     const { data: { users }, error: usersError } = await supabase.auth.admin.listUsers()
