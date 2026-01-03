@@ -12,6 +12,7 @@ export interface Profile {
     reminders?: boolean
     weekly_review?: boolean
   }
+  welcome_email_sent_at?: string | null
 }
 
 export interface EmailLog {
