@@ -21,6 +21,7 @@ export default function SettingsPage() {
   const [showPaywall, setShowPaywall] = useState(false)
   const [managingSubscription, setManagingSubscription] = useState(false)
   const [subscriptionError, setSubscriptionError] = useState<string | null>(null)
+  const [upgradeSuccess, setUpgradeSuccess] = useState(false)
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -47,6 +48,21 @@ export default function SettingsPage() {
     }
 
     loadProfile()
+
+    // Check for success/cancel query params from Stripe redirect
+    const params = new URLSearchParams(window.location.search)
+    if (params.get('success') === 'true') {
+      setUpgradeSuccess(true)
+      // Wait a moment for webhook to process, then refresh
+      setTimeout(() => {
+        loadProfile()
+        router.replace('/app/settings') // Remove query params
+        // Hide success message after 5 seconds
+        setTimeout(() => setUpgradeSuccess(false), 5000)
+      }, 2000)
+    } else if (params.get('canceled') === 'true') {
+      router.replace('/app/settings') // Remove query params
+    }
   }, [router])
 
   const handleSave = async () => {
@@ -711,6 +727,13 @@ export default function SettingsPage() {
             <CardHeader title="Subscription" />
             <CardBody>
               <div className="space-y-4">
+                {upgradeSuccess && (
+                  <div className="p-4 rounded-xl bg-[rgba(59,214,113,0.12)] border border-[rgba(59,214,113,0.30)]">
+                    <p className="text-sm text-[var(--success)]">
+                      Upgrade successful! Your Pro subscription is now active. Check your email for confirmation.
+                    </p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm font-semibold mb-1">Current Plan</p>
                   <p className="text-sm text-[var(--text-muted)]">
