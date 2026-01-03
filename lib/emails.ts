@@ -3,7 +3,11 @@
  * Uses Resend API for transactional emails
  * 
  * Required environment variables:
- * - RESEND_API_KEY
+ * - RESEND_API_KEY: Your Resend API key
+ * - RESEND_FROM_EMAIL: Email address to send from (e.g., "Decylo <noreply@yourdomain.com>")
+ * 
+ * Optional environment variables:
+ * - NEXT_PUBLIC_APP_URL: Base URL for your app (defaults to https://decylo.com)
  * 
  * Email types:
  * 1. Decision Reminder - "You committed to this decision. What happened?"
@@ -12,42 +16,67 @@
  * 4. Streak Protection - "One outcome away from breaking your streak."
  */
 
+import { Resend } from 'resend'
+
 export interface EmailData {
   to: string
   subject: string
   html: string
 }
 
+// Initialize Resend client
+let resend: Resend | null = null
+
+function getResendClient(): Resend | null {
+  if (!process.env.RESEND_API_KEY) {
+    return null
+  }
+
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY)
+  }
+
+  return resend
+}
+
+/**
+ * Get the from email address from environment variable
+ * Falls back to a default if not configured
+ */
+function getFromEmail(): string {
+  return process.env.RESEND_FROM_EMAIL || 'Decylo <noreply@decylo.com>'
+}
+
 /**
  * Send email using Resend API
  */
 export async function sendEmail(data: EmailData): Promise<boolean> {
-  if (!process.env.RESEND_API_KEY) {
+  const client = getResendClient()
+  
+  if (!client) {
     console.warn('RESEND_API_KEY not configured. Email not sent.')
     return false
   }
 
+  if (!data.to || !data.to.trim()) {
+    console.error('Email recipient not provided')
+    return false
+  }
+
   try {
-    const response = await fetch('https://api.resend.com/emails', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        from: 'Decylo <noreply@decylo.com>', // Update with your domain
-        to: data.to,
-        subject: data.subject,
-        html: data.html,
-      }),
+    const result = await client.emails.send({
+      from: getFromEmail(),
+      to: data.to,
+      subject: data.subject,
+      html: data.html,
     })
 
-    if (!response.ok) {
-      const error = await response.json()
-      console.error('Resend API error:', error)
+    if (result.error) {
+      console.error('Resend API error:', result.error)
       return false
     }
 
+    console.log('Email sent successfully:', result.data?.id)
     return true
   } catch (error) {
     console.error('Error sending email:', error)
