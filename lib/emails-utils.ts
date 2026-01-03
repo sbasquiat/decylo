@@ -62,7 +62,7 @@ export async function getUserEmailPreferences(
  */
 export async function shouldSkipEmail(
   userId: string,
-  emailType: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt',
+  emailType: 'welcome' | 'outcome_reminder' | 'outcome_due_today' | 'outcome_overdue' | 'weekly_review' | 'inactivity_nudge' | 'streak_save' | 'first_outcome' | 'first_insight' | 'pro_moment' | 'upgrade_receipt',
   targetId: string | null = null,
   daysWindow: number = 7,
   supabaseClient?: SupabaseClient
@@ -105,7 +105,7 @@ export async function shouldSkipEmail(
  */
 export async function logEmailSent(
   userId: string,
-  emailType: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt',
+  emailType: 'welcome' | 'outcome_reminder' | 'outcome_due_today' | 'outcome_overdue' | 'weekly_review' | 'inactivity_nudge' | 'streak_save' | 'first_outcome' | 'first_insight' | 'pro_moment' | 'upgrade_receipt',
   targetId: string | null = null,
   serviceRoleKey?: string
 ): Promise<void> {
@@ -141,17 +141,22 @@ export async function logEmailSent(
  */
 export function getPreferenceForEmailType(
   preferences: EmailPreferences,
-  emailType: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt'
+  emailType: 'welcome' | 'outcome_reminder' | 'outcome_due_today' | 'outcome_overdue' | 'weekly_review' | 'inactivity_nudge' | 'streak_save' | 'first_outcome' | 'first_insight' | 'pro_moment' | 'upgrade_receipt'
 ): boolean {
   switch (emailType) {
     case 'welcome':
       return preferences.welcome !== false
     case 'outcome_reminder':
+    case 'outcome_due_today':
+    case 'outcome_overdue':
     case 'inactivity_nudge':
+    case 'streak_save':
       return preferences.reminders !== false
     case 'weekly_review':
       return preferences.weekly_review !== false
+    case 'first_outcome':
     case 'first_insight':
+    case 'pro_moment':
     case 'upgrade_receipt':
       // These are always enabled (system emails)
       return true

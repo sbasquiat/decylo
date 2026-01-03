@@ -18,8 +18,8 @@ export interface Profile {
 export interface EmailLog {
   id: string
   user_id: string
-  email_type: 'welcome' | 'outcome_reminder' | 'weekly_review' | 'inactivity_nudge' | 'first_insight' | 'upgrade_receipt'
-  target_id: string | null // decision_id for outcome_reminder, null for others
+  email_type: 'welcome' | 'outcome_reminder' | 'outcome_due_today' | 'outcome_overdue' | 'weekly_review' | 'inactivity_nudge' | 'streak_save' | 'first_outcome' | 'first_insight' | 'pro_moment' | 'upgrade_receipt'
+  target_id: string | null // decision_id for outcome_reminder/outcome_overdue, null for others
   sent_at: string
   created_at: string
 }

@@ -133,10 +133,16 @@ export async function GET(request: NextRequest) {
         continue
       }
 
-      // Send email
-      const emailData = generateWeeklyReviewEmail(undefined, {
+      // Get user's Decision Health data for email
+      // TODO: Fetch actual DHI, calibration gap, and loop closure rate from database
+      // For now, using placeholder values
+      const emailData = generateWeeklyReviewEmail(profile?.display_name || undefined, {
         decisionsMade: decisionCount,
         trajectory,
+        dhi: undefined, // TODO: Get from decision_health_snapshots
+        cal_gap: undefined, // TODO: Calculate from outcomes
+        lcr: undefined, // TODO: Calculate completion rate
+        challenge_text: undefined, // TODO: Generate personalized challenge
       })
       const emailToSend = {
         ...emailData,
@@ -147,12 +153,6 @@ export async function GET(request: NextRequest) {
       if (sent) {
         // Log with service role
         await logEmailSent(userId, 'weekly_review', null, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-        sentCount++
-      } else {
-        skippedCount++
-      }
-
-      if (sent) {
         sentCount++
       } else {
         skippedCount++

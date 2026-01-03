@@ -14,7 +14,7 @@ ADD COLUMN IF NOT EXISTS timezone TEXT DEFAULT 'UTC';
 CREATE TABLE IF NOT EXISTS email_logs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES profiles(id) ON DELETE CASCADE,
-  email_type TEXT NOT NULL, -- 'welcome', 'outcome_reminder', 'weekly_review', 'inactivity_nudge', 'first_insight', 'upgrade_receipt'
+  email_type TEXT NOT NULL, -- 'welcome', 'outcome_reminder', 'outcome_due_today', 'outcome_overdue', 'weekly_review', 'inactivity_nudge', 'streak_save', 'first_outcome', 'first_insight', 'pro_moment', 'upgrade_receipt'
   target_id UUID, -- decision_id for outcome_reminder, null for others
   sent_at TIMESTAMPTZ DEFAULT NOW(),
   created_at TIMESTAMPTZ DEFAULT NOW()

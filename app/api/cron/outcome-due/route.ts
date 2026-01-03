@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { generateOutcomeReminderEmail, sendEmail } from '@/lib/emails'
+import { generateOutcomeDueTodayEmail, generateOutcomeOverdueEmail, sendEmail } from '@/lib/emails'
 import { logEmailSent, getPreferenceForEmailType } from '@/lib/emails-utils'
 
 /**
@@ -60,11 +60,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Check which decisions already have outcomes
-    const decisionIds = decisions.map(d => d.id)
+    const allDecisionIds = decisions.map(d => d.id)
     const { data: outcomes } = await supabase
       .from('outcomes')
       .select('decision_id')
-      .in('decision_id', decisionIds)
+      .in('decision_id', allDecisionIds)
 
     const decisionsWithOutcomes = new Set(outcomes?.map(o => o.decision_id) || [])
     const decisionsNeedingReminders = decisions.filter(
@@ -98,55 +98,97 @@ export async function GET(request: NextRequest) {
 
     const profileMap = new Map(profiles?.map(p => [p.id, p]) || [])
 
-    // Send emails
+    // Group decisions by user for daily digest
+    const decisionsByUser = new Map<string, typeof decisionsNeedingReminders>()
+    for (const decision of decisionsNeedingReminders) {
+      if (!decisionsByUser.has(decision.user_id)) {
+        decisionsByUser.set(decision.user_id, [])
+      }
+      decisionsByUser.get(decision.user_id)!.push(decision)
+    }
+
+    // Convert Map to Array for iteration
+    const userEntries = Array.from(decisionsByUser.entries())
+
+    // Get decision details (options, confidence) for email
+    const reminderDecisionIds = decisionsNeedingReminders.map(d => d.id)
+    const { data: decisionsWithDetails } = await supabase
+      .from('decisions')
+      .select('id, title, chosen_option_id, confidence_int')
+      .in('id', reminderDecisionIds)
+
+    const { data: options } = await supabase
+      .from('options')
+      .select('id, label')
+      .in('decision_id', reminderDecisionIds)
+
+    const optionsMap = new Map(options?.map(o => [o.id, o.label]) || [])
+    const decisionsMap = new Map(decisionsWithDetails?.map(d => [d.id, d]) || [])
+
+    // Send emails (grouped by user - one email per user with all their due decisions)
     let sentCount = 0
     let skippedCount = 0
 
-    for (const decision of decisionsNeedingReminders) {
-      const userEmail = userMap.get(decision.user_id)
+    for (const [userId, userDecisions] of userEntries) {
+      const userEmail = userMap.get(userId)
       if (!userEmail) {
-        console.warn(`No email found for user ${decision.user_id}`)
-        skippedCount++
+        console.warn(`No email found for user ${userId}`)
+        skippedCount += userDecisions.length
         continue
       }
 
       // Check preferences with service role
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('email_preferences')
-        .eq('id', decision.user_id)
-        .single()
-
+      const profile = profileMap.get(userId)
       const preferences = {
         welcome: profile?.email_preferences?.welcome !== false,
         reminders: profile?.email_preferences?.reminders !== false,
         weekly_review: profile?.email_preferences?.weekly_review !== false,
       }
 
-      if (!getPreferenceForEmailType(preferences, 'outcome_reminder')) {
-        skippedCount++
+      if (!getPreferenceForEmailType(preferences, 'outcome_due_today')) {
+        skippedCount += userDecisions.length
         continue
       }
 
-      // Check idempotency
-      const idempotencyCutoff = new Date()
-      idempotencyCutoff.setDate(idempotencyCutoff.getDate() - 7)
+      // Check idempotency (don't send if already sent today)
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
       const { data: existingLog } = await supabase
         .from('email_logs')
         .select('id')
-        .eq('user_id', decision.user_id)
-        .eq('email_type', 'outcome_reminder')
-        .eq('target_id', decision.id)
-        .gte('sent_at', idempotencyCutoff.toISOString())
+        .eq('user_id', userId)
+        .eq('email_type', 'outcome_due_today')
+        .gte('sent_at', today.toISOString())
         .limit(1)
 
       if (existingLog && existingLog.length > 0) {
-        skippedCount++
+        skippedCount += userDecisions.length
         continue
       }
 
-      // Send email
-      const emailData = generateOutcomeReminderEmail(undefined, decision.id)
+      // Prepare decision list for email
+      const decisionsForEmail = userDecisions.map((d: any) => {
+        const decisionDetail = decisionsMap.get(d.id)
+        const chosenOptionLabel = decisionDetail?.chosen_option_id 
+          ? optionsMap.get(decisionDetail.chosen_option_id) || 'N/A'
+          : 'N/A'
+        return {
+          title: decisionDetail?.title || d.title || 'Untitled Decision',
+          chosen_option: chosenOptionLabel,
+          confidence: decisionDetail?.confidence_int || 'N/A',
+          id: d.id,
+        }
+      })
+
+      // Get profile for display name
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('id', userId)
+        .single()
+
+      // Send daily digest email
+      const emailData = generateOutcomeDueTodayEmail(decisionsForEmail, userProfile?.display_name || undefined)
       const emailToSend = {
         ...emailData,
         to: userEmail,
@@ -155,10 +197,10 @@ export async function GET(request: NextRequest) {
 
       if (sent) {
         // Log with service role
-        await logEmailSent(decision.user_id, 'outcome_reminder', decision.id, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-        sentCount++
+        await logEmailSent(userId, 'outcome_due_today', null, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+        sentCount += userDecisions.length
       } else {
-        skippedCount++
+        skippedCount += userDecisions.length
       }
     }
 

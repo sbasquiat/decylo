@@ -58,6 +58,12 @@ export async function GET(request: NextRequest) {
         }
 
         const sent = await sendEmail(emailToSend)
+        
+        // Also log in email_logs for idempotency
+        if (sent) {
+          const { logEmailSent } = await import('@/lib/emails-utils')
+          await logEmailSent(user.id, 'welcome', null)
+        }
 
         if (sent) {
           // Update profile to mark welcome email as sent
